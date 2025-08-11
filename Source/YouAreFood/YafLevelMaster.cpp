@@ -1,0 +1,162 @@
+// Copyright 2025 DME Games.  Made for the Ryan Laley 2025 Game Jam.
+
+
+#include "YafLevelMaster.h"
+
+#include "PlayerPawn.h"
+#include "yafGameStateBase.h"
+#include "YafSpawnArrowComponent.h"
+#include "Components/BoxComponent.h"
+
+// Sets default values
+AYafLevelMaster::AYafLevelMaster()
+{
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = false;
+
+	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	SetRootComponent(SceneComp);
+
+	MeshCompBase = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Floor Mesh"));
+	MeshCompBase->SetupAttachment(RootComponent);
+	MeshCompBase->SetRelativeLocation(FVector(500.f, 0.f, 0.f));
+
+	StartCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("Start Collision"));
+	StartCollision->SetupAttachment(RootComponent);
+	StartCollision->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
+	//StartCollision->OnComponentBeginOverlap.AddDynamic(this, &AEVRLevelMaster::OnBeginOverlapStartComp);
+	
+	ArrowComp = CreateDefaultSubobject<UArrowComponent>(TEXT("Attach Point"));
+	ArrowComp->SetupAttachment(RootComponent);
+	ArrowComp->SetRelativeLocation(FVector(1000.f, 0.f, 0.f));
+
+	EndCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("End Collision"));
+	EndCollision->SetupAttachment(ArrowComp);
+	EndCollision->SetRelativeLocation(FVector(0.f, 0.f,120.f));
+	EndCollision->SetBoxExtent(FVector(16.f, 500.f, 100.f));
+	EndCollision->OnComponentBeginOverlap.AddDynamic(this, &AYafLevelMaster::OnBeginOverlap);
+
+	SpawnPointLeft = CreateDefaultSubobject<UYafSpawnArrowComponent>(TEXT("Spawn Point Left"));
+	SpawnPointLeft->SetupAttachment(RootComponent);
+	SpawnPointLeft->SetRelativeLocation(FVector(100.f, -333.f, 30.f));
+
+	SpawnPointCentre = CreateDefaultSubobject<UYafSpawnArrowComponent>(TEXT("Spawn Point Centre"));
+	SpawnPointCentre->SetupAttachment(RootComponent);
+	SpawnPointCentre->SetRelativeLocation(FVector(100.f, 0.f, 30.f));
+
+	SpawnPointRight = CreateDefaultSubobject<UYafSpawnArrowComponent>(TEXT("Spawn Point Right"));
+	SpawnPointRight->SetupAttachment(RootComponent);
+	SpawnPointRight->SetRelativeLocation(FVector(100.f, 333.f, 30.f));
+
+	OnRoadActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("Spawned Pickup Actor"));
+	OnRoadActor->SetupAttachment(RootComponent);
+
+	NewRoadsideActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("Spawned Roadside Actor"));
+	NewRoadsideActor->SetupAttachment(RootComponent);
+	
+	TurnSpawnChance = 0.f;
+	BlockSpawnChance = 50;
+}
+
+// Called when the game starts or when spawned
+void AYafLevelMaster::BeginPlay()
+{
+	Super::BeginPlay();
+
+	GetReferences();
+	SetArrowAndBoxTransforms();
+	SpawnRoadsidePiece();
+}
+
+bool AYafLevelMaster::SpawnPickup()
+{
+	return true;
+}
+
+void AYafLevelMaster::OnBeginOverlap(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor == PlayerPawnRef)
+	{
+		if (GameStateRef)
+		{
+			GameStateRef->TryToSpawnNextPiece();
+		}
+
+		FTimerHandle DestroyTimer;
+		GetWorld()->GetTimerManager().SetTimer(DestroyTimer, this, &AYafLevelMaster::DestroyThisPiece, 2.0f, false, -1.f);
+	}
+}
+
+void AYafLevelMaster::GetSpawnPointInfo(FVector& NewSpawnLocation, FRotator& NewSpawnRotation) const
+{
+	NewSpawnLocation = ArrowComp->GetComponentLocation();
+	NewSpawnRotation = ArrowComp->GetComponentRotation();
+}
+
+void AYafLevelMaster::SetArrowAndBoxTransforms()
+{
+	// Only spawn items that can be collided with on the straight pieces
+	if (SpawnPointLeft->GetCanSpawnHere())
+	{
+		SpawnPointArray.Add(SpawnPointLeft->GetComponentTransform());
+	}
+	
+	if (SpawnPointCentre->GetCanSpawnHere())
+	{
+		SpawnPointArray.Add(SpawnPointCentre->GetComponentTransform());
+	}
+
+	if (SpawnPointRight->GetCanSpawnHere())
+	{
+		SpawnPointArray.Add(SpawnPointRight->GetComponentTransform());
+	}
+
+	switch (FloorType)
+	{
+	case EFloorType::FT_Straight:
+	default:
+		StartCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		StartCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+		StartCollision->SetGenerateOverlapEvents(false);
+		break;
+	case EFloorType::FT_Left:
+		ArrowComp->SetRelativeLocation(FVector(500.f, -500.f, 0.f));
+		ArrowComp->SetRelativeRotation(FRotator(0.f, 270.f, 0.f));
+		break;
+	case EFloorType::FT_Right:
+		ArrowComp->SetRelativeLocation(FVector(500.f, 500.f, 0.f));
+		ArrowComp->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
+		break;
+	}
+}
+
+void AYafLevelMaster::GetReferences()
+{
+	GameStateRef = Cast<AYafGameStateBase>(GetWorld()->GetGameState());
+
+	if (!GameStateRef)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Game State Ref failed to set in YafLevelMaster"));
+	}
+	else
+	{
+		GameStateRef->SetYafLevelMasterRef(this);
+	}
+
+	PlayerPawnRef = Cast<APlayerPawn>(GetWorld()->GetFirstPlayerController()->GetPawn());
+
+	if (!PlayerPawnRef)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Player Vehicle Ref failed to set in EVRLevelMaster"));
+	}
+}
+
+bool AYafLevelMaster::SpawnRoadsidePiece()
+{
+	return true;
+}
+
+void AYafLevelMaster::DestroyThisPiece()
+{
+	Destroy();
+}

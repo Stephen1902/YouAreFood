@@ -1,0 +1,140 @@
+// Copyright 2025 DME Games.  Made for the Ryan Laley 2025 Game Jam.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/TimelineComponent.h"
+#include "GameFramework/Pawn.h"
+#include "PlayerPawn.generated.h"
+
+UCLASS()
+class YOUAREFOOD_API APlayerPawn : public APawn
+{
+	GENERATED_BODY()
+
+public:
+	// Sets default values for this pawn's properties
+	APlayerPawn();
+
+protected:
+	UPROPERTY(Category = "Player Pawn", EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	USceneComponent* SceneComponent;
+	
+	UPROPERTY(Category = "Player Pawn", EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	UStaticMeshComponent* StaticMeshComp;
+
+	UPROPERTY(Category = "Player Pawn", EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	class USpringArmComponent* SpringArmComp;
+
+	UPROPERTY(Category = "Player Pawn", EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	class UCameraComponent* CameraComp;
+
+	UPROPERTY(Category = "Player Pawn", EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> PlayerWidget;
+
+	// Units in cm the player will move forward per second
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Options")
+	float MovementSpeed;
+
+	// Time in seconds it takes for the player to reach top speed
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Options")
+	float SpeedOfAcceleration;
+	
+	// Time in seconds it takes to move the player to another lane 
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Options")
+	float TurnSpeed;
+
+	// Amount of visible "turn" in the player when changing lanes
+	UPROPERTY(EditDefaultsOnly, Category = "Movement Options")
+	float TurnDegrees;
+	
+	UPROPERTY()
+	UTimelineComponent* TurnTimeline;
+
+	UFUNCTION(BlueprintCallable, Category = " Gameplay")
+	float GetMaxSpeed() const { return MovementSpeed; }
+
+	UFUNCTION(BlueprintCallable, Category = " Gameplay")
+	void SetMaxSpeed(const float SpeedIn) { MovementSpeed += SpeedIn; }
+
+	UFUNCTION(BlueprintCallable, Category = " Gameplay")
+	float GetCurrentSpeedAsFloat() const { return CurrentSpeed; }
+	
+	UFUNCTION(BlueprintCallable, Category = " Gameplay")
+	void SetGameIsPaused(const bool PausedIn) { bGameIsPaused = PausedIn; }
+
+	UFUNCTION(BlueprintCallable, Category = " Gameplay")
+	void SetCanTurn( const bool CanTurnIn) { bCanTurn = CanTurnIn; }
+
+	void SetDesiredRotation(const float NewRotation) { DesiredRotation = NewRotation; }
+
+	void SetNewPositionAfterTurn(const FVector ArrowLocation, const FRotator NewRotation);
+	
+	void AddToLaneLocations(const float LocationIn);
+	
+	UFUNCTION()
+	virtual void OnMeshBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	virtual void TimelineFloatReturn(float Value);
+
+	/** Declare a delegate to call with TimeLineFloatReturn */
+	FOnTimelineFloat InterpFunction{};
+
+	// Current speed of the , when moving
+	float CurrentSpeed;
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+private:
+	void TurnLeft();
+	void TurnRight();
+	virtual void Turn(const float DeltaTime);
+
+	bool bGameIsPaused;
+	bool bIsTurning;
+
+	TArray<float> YLocations;
+	float DesiredRotation;
+	bool bCanTurn;
+	bool bHasTurned;
+	
+	int32 LocationIndex;
+	int32 LastLocationIndex;
+	float YLocationToMoveTo;
+	float TimeSinceTurnStarted;
+
+	// Variables for turning player on a curve
+	FVector StartPlayerLocation;
+	FVector EndPlayerLocation;
+	FRotator StartPlayerRotation;
+	FRotator EndPlayerRotation;
+		
+	void MovePlayerForward(float DeltaTime);
+	
+	UPROPERTY()
+	UTimelineComponent* TimelineComponent;
+
+	/** Curve to use when turning the  round a corner */
+	UPROPERTY()
+	UCurveFloat* FCurve;
+
+	UPROPERTY()
+	class AYafGameStateBase* GameStateRef;
+
+	void GetReferences();
+
+	void GetMovementCurve();
+	
+	// Time taken for curve to complete in seconds
+	float MaxCurveTimeRange;
+
+	// Distance between lanes for the s to turn in to
+	float DistanceBetweenLanes;
+};

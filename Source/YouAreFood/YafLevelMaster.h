@@ -1,0 +1,119 @@
+// Copyright 2025 DME Games.  Made for the Ryan Laley 2025 Game Jam.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ArrowComponent.h"
+#include "GameFramework/Actor.h"
+#include "YafLevelMaster.generated.h"
+
+class UYafSpawnArrowComponent;
+
+UENUM(BlueprintType)
+enum class EFloorType : uint8
+{
+	FT_Straight		UMETA(DisplayName = "Straight"),
+	FT_Left			UMETA(DisplayName = "Left"),
+	FT_Right		UMETA(DisplayName = "Right")
+};
+
+UCLASS()
+class YOUAREFOOD_API AYafLevelMaster : public AActor
+{
+	GENERATED_BODY()
+	
+public:	
+	// Sets default values for this actor's properties
+	AYafLevelMaster();
+
+protected:
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
+	USceneComponent* SceneComp;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
+	UStaticMeshComponent* MeshCompBase;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
+	class UArrowComponent* ArrowComp;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
+	class UBoxComponent* EndCollision;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
+	class UBoxComponent* StartCollision;
+		
+	// A component for spawning an item the player can hit.  Change Yaw to 180 if not to be used.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
+	UYafSpawnArrowComponent* SpawnPointLeft;
+
+	// A component for spawning an item the player can hit.  Change Yaw to 180 if not to be used.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
+	UYafSpawnArrowComponent* SpawnPointCentre;
+
+	// A component for spawning an item the player can hit.  Change Yaw to 180 if not to be used.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
+	UYafSpawnArrowComponent* SpawnPointRight;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
+	UChildActorComponent* OnRoadActor;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
+	UChildActorComponent* NewRoadsideActor;
+
+	// Whether the floor type is straight, turns the player left or right
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Game Level")
+	EFloorType FloorType;
+
+	// Items derived from the Spawned Items Master class that can be spawned by this level piece
+//	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
+//	TArray<TSubclassOf<class AEVRSpawnMaster>> ItemsToSpawn;
+
+	// Non-Player vehicles to spawn in the level for the player to hit
+//	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
+//	TArray<TSubclassOf<class AEVRVehicleMaster>> NonPlayerVehicles;
+	
+	// Roadside spawn items
+//	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
+//	TArray<TSubclassOf<class AEVRRoadsideSpawns>> SidePiecesToSpawn;
+	
+	bool SpawnPickup();
+
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void OnBeginOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+// Getters
+public:	
+	FTransform GetNextSpawnPoint() const { return ArrowComp->GetComponentTransform(); };
+
+	void GetSpawnPointInfo(FVector &NewSpawnLocation, FRotator &NewSpawnRotation) const;
+	int32 GetNumberOfLanes() const { return NumberOfLanes; }
+private:
+	// Number of lanes in this piece so the player position is set correctly
+	int32 NumberOfLanes;
+
+	void SetArrowAndBoxTransforms();
+	
+	void GetReferences();
+
+	UPROPERTY()
+	class AYafGameStateBase* GameStateRef;
+
+	UPROPERTY()
+	class APlayerPawn* PlayerPawnRef;
+
+	UPROPERTY()
+	TArray<FTransform> SpawnPointArray;
+	
+	bool SpawnRoadsidePiece();
+	
+	float TurnSpawnChance;
+	int32 BlockSpawnChance;
+	
+	void DestroyThisPiece();
+
+	bool bHasTurnedVehicle = false;
+};
