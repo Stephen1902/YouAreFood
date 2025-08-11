@@ -7,6 +7,10 @@
 #include "GameFramework/Pawn.h"
 #include "PlayerPawn.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDistanceUpdated, FText, DistanceUpdatedText);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPauseKeyPressed);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnGameOver, FText, DistanceThisGame, FText, PlayerHighScore, bool, NewHighScore);
+
 UCLASS()
 class YOUAREFOOD_API APlayerPawn : public APawn
 {
@@ -16,6 +20,15 @@ public:
 	// Sets default values for this pawn's properties
 	APlayerPawn();
 
+	UPROPERTY(BlueprintAssignable, Category = "Player Vehicle Gameplay")
+	FOnDistanceUpdated OnDistanceUpdated;
+
+	UPROPERTY(BlueprintAssignable, Category = "Player Vehicle Gameplay")
+	FOnPauseKeyPressed OnPauseKeyPressed;
+
+	UPROPERTY(BlueprintAssignable, Category = "Player Vehicle Gameplay")
+	FOnGameOver OnGameOver;
+	
 protected:
 	UPROPERTY(Category = "Player Pawn", EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	USceneComponent* SceneComponent;
@@ -137,4 +150,39 @@ private:
 
 	// Distance between lanes for the s to turn in to
 	float DistanceBetweenLanes;
+
+	float CurrentPlayerLife;
+	
+	// To quickly flash the player speed, making it look like it's varying slightly
+	float TimeSinceSpeedoVaried;
+
+	void AddPlayerWidgetToScreen();
+	
+	UPROPERTY()
+	UMaterialInstanceDynamic* DynMaterial;
+	
+	bool bTurnSoundIsPlaying;
+	bool bCornerSoundIsPlaying;
+
+	//void PlayRevvingSound() const;
+	void AddToDistanceTravelled(float TimeIn);
+
+	float DistanceTravelled;
+	float TimeSinceDistanceUpdated;
+	void PauseKeyPressed();
+
+	int32 HighScore;
+
+	UPROPERTY()
+	class USaveGame* SaveGameRef;
+	
+//	UPROPERTY()
+//	class UEVRSaveGame* ThisSaveGameRef;
+	
+	FString SaveGameSlot;
+	void SetSaveGameReferences();
+
+	void ShowMouseAndLockDisplay() const;
+
+	bool bGameOver;
 };

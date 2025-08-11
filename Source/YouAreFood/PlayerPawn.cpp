@@ -104,6 +104,9 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	PlayerInputComponent->BindAction("TurnLeft", IE_Pressed, this, &APlayerPawn::TurnLeft);
+	PlayerInputComponent->BindAction("TurnRight", IE_Pressed, this, &APlayerPawn::TurnRight);
+	PlayerInputComponent->BindAction("PauseMenu", IE_Pressed, this, &APlayerPawn::PauseKeyPressed);
 }
 
 void APlayerPawn::TurnLeft()
@@ -183,7 +186,7 @@ void APlayerPawn::GetReferences()
 
 	if (GameStateRef)
 	{
-		//DistanceBetweenLanes = GameStateRef->GetDistanceBetweenLanes();
+		DistanceBetweenLanes = GameStateRef->GetDistanceBetweenLanes();
 	}
 }
 
@@ -205,5 +208,21 @@ void APlayerPawn::GetMovementCurve()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Float Curve was not found.  Check the location in code"));
 	}
+}
+
+void APlayerPawn::AddToDistanceTravelled(float TimeIn)
+{
+}
+
+void APlayerPawn::PauseKeyPressed()
+{
+}
+
+void APlayerPawn::SetSaveGameReferences()
+{
+}
+
+void APlayerPawn::ShowMouseAndLockDisplay() const
+{
 }
 
