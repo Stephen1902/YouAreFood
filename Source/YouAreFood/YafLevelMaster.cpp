@@ -76,12 +76,11 @@ bool AYafLevelMaster::SpawnPickup()
 	// Check for valid spawn points and valid items in this level piece's array
 	if (SpawnPointArray.Num() > 0 && ItemsToSpawn.Num() > 0)
 	{
-		const bool SpawnDouble = FMath::RandBool();
-
 		// Always spawn at least 1 item
 		const int32 RandomItemToSpawn = FMath::RandRange(0, ItemsToSpawn.Num() - 1);
 		const int32 RandomTransformToSpawnAt = FMath::RandRange(0,2);
 
+		UE_LOG(LogTemp, Warning, TEXT("Spawning %s"), *ItemsToSpawn[RandomItemToSpawn].Get()->GetName());
 		const FActorSpawnParameters SpawnInfo;
 		
 		FVector WorldLocationToSpawn = SpawnPointArray[RandomTransformToSpawnAt].GetLocation();
@@ -89,7 +88,7 @@ bool AYafLevelMaster::SpawnPickup()
 		SpawnedItems.Add(GetWorld()->SpawnActor<AYafSpawnedMaster>(ItemsToSpawn[RandomItemToSpawn], WorldLocationToSpawn, ArrowComp->GetComponentRotation(), SpawnInfo));
 
 		// Add second item if required
-		if (SpawnDouble)
+		if (FMath::RandBool())
 		{
 			const int32 SecondItemToSpawn = FMath::RandRange(0, ItemsToSpawn.Num() - 1);
 
@@ -99,8 +98,7 @@ bool AYafLevelMaster::SpawnPickup()
 				SecondSpawnPoint = FMath::RandRange(0,2);
 			}
 			while (RandomTransformToSpawnAt == SecondSpawnPoint);
-
-
+			
 			WorldLocationToSpawn = SpawnPointArray[SecondSpawnPoint].GetLocation();
 			WorldLocationToSpawn.Z += 20.f;
 			SpawnedItems.Add(GetWorld()->SpawnActor<AYafSpawnedMaster>(ItemsToSpawn[SecondItemToSpawn], WorldLocationToSpawn, ArrowComp->GetComponentRotation(), SpawnInfo));
@@ -136,12 +134,10 @@ bool AYafLevelMaster::SpawnEnemy()
 		}
 		
 		SpawnedItems.Add(GetWorld()->SpawnActor<AYafSpawnedMaster>(EnemiesToSpawn[RandomItemToSpawn], WorldLocationToSpawn, WorldRotationToSpawn, SpawnInfo));
-		
 	}
 		
 	if (SpawnedItems.Num() > 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Enemy Spawned"));
 		return true;
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Enemy failed to spawn."))

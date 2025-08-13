@@ -25,7 +25,7 @@ void AYafSpawnedPickup::OnMeshOverlap(UPrimitiveComponent* HitComp, AActor* Othe
 				break;
 			}
 		}
-	}
 
-	Destroy();
+		Destroy();
+	}	
 }

@@ -74,7 +74,7 @@ protected:
 	EFloorType FloorType;
 
 	// Items derived from the Spawned Items Master class that can be spawned by this level piece
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Game Level")
 	TArray<TSubclassOf<class AYafSpawnedMaster>> ItemsToSpawn;
 
 	// Items from the Spawned Enemy class that can be spawned by this level piece
