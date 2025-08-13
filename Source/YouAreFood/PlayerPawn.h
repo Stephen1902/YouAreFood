@@ -37,6 +37,9 @@ protected:
 	UStaticMeshComponent* StaticMeshComp;
 
 	UPROPERTY(Category = "Player Pawn", EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	UStaticMeshComponent* ShieldMeshComp;
+	
+	UPROPERTY(Category = "Player Pawn", EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	class USpringArmComponent* SpringArmComp;
 
 	UPROPERTY(Category = "Player Pawn", EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
@@ -69,9 +72,6 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = " Gameplay")
 	void SetMaxSpeed(const float SpeedIn) { MovementSpeed += SpeedIn; }
-
-	UFUNCTION(BlueprintCallable, Category = " Gameplay")
-	float GetCurrentSpeedAsFloat() const { return CurrentSpeed; }
 	
 	UFUNCTION(BlueprintCallable, Category = " Gameplay")
 	void SetGameIsPaused(const bool PausedIn) { bGameIsPaused = PausedIn; }
@@ -107,6 +107,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	bool GetHasShield() const { return bHasShield; }
+	void SetHasShield(UStaticMesh* ShieldMesh, FVector ScaleToSet);
 	void RemoveShield();
 	void GameOver();
 private:
@@ -170,7 +171,7 @@ private:
 
 	//void PlayRevvingSound() const;
 	void AddToDistanceTravelled(float TimeIn);
-
+	
 	float DistanceTravelled;
 	float TimeSinceDistanceUpdated;
 	void PauseKeyPressed();

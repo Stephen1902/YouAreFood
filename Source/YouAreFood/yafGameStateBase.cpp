@@ -94,15 +94,13 @@ void AYafGameStateBase::SpawnStartLevel()
 
 void AYafGameStateBase::TryToSpawnPickup()
 {
-	/*
-	if (LevelMasterRef)
+	/*if (LevelMasterRef)
  	{
 		if (FMath::RandRange(0, 75) < SpawnPickupChance && LevelMasterRef->SpawnPickup())
  		{
  			SpawnPickupChance = 0;
  		}
-	}
-	*/
+	}*/
 }
 
 void AYafGameStateBase::SpawnNextLevelPiece(const bool SpawnStraight, const int32 PieceToSpawn, const bool SpawnPickup)

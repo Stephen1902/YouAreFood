@@ -6,6 +6,7 @@
 #include "PlayerWidget.h"
 #include "yafGameStateBase.h"
 #include "YafLevelMaster.h"
+#include "YafSaveGame.h"
 #include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -24,6 +25,9 @@ APlayerPawn::APlayerPawn()
 	StaticMeshComp->SetMobility(EComponentMobility::Movable);
 	StaticMeshComp->SetupAttachment(SceneComponent);
 	StaticMeshComp->OnComponentBeginOverlap.AddDynamic(this, &APlayerPawn::OnMeshBeginOverlap);
+
+	ShieldMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Shield Mesh Comp"));
+	ShieldMeshComp->SetupAttachment(StaticMeshComp);
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm"));
 	SpringArmComp->SetupAttachment(SceneComponent);
@@ -55,7 +59,7 @@ APlayerPawn::APlayerPawn()
 	TimeSinceTurnStarted = 0.f;
 	LocationIndex = 1;
 
-	bHasShield = true;
+	bHasShield = false;
 	bGameOver = false;
 }
 
@@ -135,8 +139,9 @@ void APlayerPawn::BeginPlay()
 	GetMovementCurve();
 	GetReferences();
 	AddPlayerWidgetToScreen();
+	SetSaveGameReferences();
 	ChangeInputMode(false);
-	
+		
 	CurrentSpeed = 0.f;
 }
 
@@ -177,16 +182,48 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 }
 
 
+void APlayerPawn::SetHasShield(UStaticMesh* ShieldMesh, const FVector ScaleToSet)
+{
+	// Make sure there isn't already a shield in place
+	if (!bHasShield)
+	{
+		bHasShield = true;
+		if (ShieldMesh)
+		{
+			ShieldMeshComp->SetStaticMesh(ShieldMesh);
+			ShieldMeshComp->SetRelativeScale3D(ScaleToSet);
+		}
+	}
+}
+
 void APlayerPawn::RemoveShield()
 {
 	bHasShield = false;
+	ShieldMeshComp->SetStaticMesh(nullptr);
 }
 
 void APlayerPawn::GameOver()
 {
+	
+	if (ThisSaveGameRef && DistanceTravelled > HighScore)
+	{
+		HighScore = FMath::Floor(DistanceTravelled);
+		ThisSaveGameRef->SavedHighScore = HighScore;
+
+		if (UGameplayStatics::SaveGameToSlot(ThisSaveGameRef, "SaveGameSlot", 0))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Game Saved"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Game failed to save"));
+		}
+	}
+		
 	if (PlayerWidgetRef)
 	{
-		PlayerWidgetRef->GameOver(FText::FromString("9998"), FText::FromString("9999"), false);
+		const FText DistanceToBroadcast =  FText::FromString(FString::SanitizeFloat(FMath::Floor(DistanceTravelled), 0) + "M");
+		PlayerWidgetRef->GameOver(DistanceToBroadcast, FText::FromString(FString::FromInt(HighScore)), DistanceTravelled > HighScore);
 		ChangeInputMode(true);
 	}
 	
@@ -310,11 +347,25 @@ void APlayerPawn::AddPlayerWidgetToScreen()
 
 void APlayerPawn::AddToDistanceTravelled(float TimeIn)
 {
-	int32 RandomNumber = FMath::RandRange(0, 9999);
-	if (PlayerWidgetRef)
+	// Convert m/s speed to MPH (x10 since speed works out to around 6.7MPH)
+	const int32 SpeedAsMPH = (CurrentSpeed / 1000.f ) * 22.369363;
+
+	DistanceTravelled += SpeedAsMPH * TimeIn;
+
+	TimeSinceDistanceUpdated += TimeIn;
+
+	if (TimeSinceDistanceUpdated > 0.08f)
 	{
-		PlayerWidgetRef->SetCurrentDistanceText(FText::FromString(FString::FromInt(RandomNumber)));
+		TimeSinceDistanceUpdated = 0.f;
+		
+		if (PlayerWidgetRef)
+		{
+			const FText TextToBroadcast =  FText::FromString(FString::SanitizeFloat(FMath::Floor(DistanceTravelled), 0));
+			PlayerWidgetRef->SetCurrentDistanceText(TextToBroadcast);
+		}		
 	}
+	
+
 }
 
 void APlayerPawn::PauseKeyPressed()
@@ -323,6 +374,27 @@ void APlayerPawn::PauseKeyPressed()
 
 void APlayerPawn::SetSaveGameReferences()
 {
+	// Check if a saved game already exists and if not, create it
+	if (UGameplayStatics::DoesSaveGameExist("SaveGameSlot", 0))
+	{
+		SaveGameRef = UGameplayStatics::LoadGameFromSlot("SaveGameSlot", 0);
+	}
+	else
+	{
+		SaveGameRef = Cast<UYafSaveGame>(UGameplayStatics::CreateSaveGameObject(UYafSaveGame::StaticClass()));
+	}
+
+	// Cast to the specific instance of the SaveGame class for the HighScore variable
+	ThisSaveGameRef = Cast<UYafSaveGame>(SaveGameRef);
+	
+	if (ThisSaveGameRef)
+	{
+		HighScore = ThisSaveGameRef->SavedHighScore;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to get a valid Save Game Reference in PlayerPawn."));
+	}
 }
 
 void APlayerPawn::ChangeInputMode(bool ShouldShowMouse) const

@@ -13,5 +13,11 @@ UCLASS()
 class YOUAREFOOD_API UYafSaveGame : public USaveGame
 {
 	GENERATED_BODY()
-	
+
+public:
+	UPROPERTY(EditAnywhere, Category = "Saved Game Options")
+	int32 SavedHighScore;
+
+	UPROPERTY(EditAnywhere, Category = "Saved Game Options")
+	bool bShowHelpScreen;
 };

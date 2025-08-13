@@ -77,7 +77,6 @@ void AYafSpawnedMaster::OnBeginOverlap(UPrimitiveComponent* HitComp, AActor* Oth
 				else
 				{
 					// The type is an enemy, call animations etc.
-					
 				}
 			}
 			else
@@ -91,7 +90,7 @@ void AYafSpawnedMaster::OnBeginOverlap(UPrimitiveComponent* HitComp, AActor* Oth
 		{
 			// This item is a pickup.  Tell the player.
 			
-			DestroySpawnedActor();
+			//DestroySpawnedActor();
 		}
 
 	}

@@ -75,13 +75,23 @@ bool AYafLevelMaster::SpawnPickup()
 	// Check for valid spawn points and valid items in this level piece's array
 	if (SpawnPointArray.Num() > 0 && ItemsToSpawn.Num() > 0)
 	{
-		// Randomly decide if 1 or 2 items are to be spawned
-		if (FMath::RandBool())
+		const bool SpawnDouble = FMath::RandBool();
+
+		// Always spawn at least 1 item
+		const int32 RandomItemToSpawn = FMath::RandRange(0, ItemsToSpawn.Num() - 1);
+		const int32 RandomTransformToSpawnAt = FMath::RandRange(0,2);
+
+		const FActorSpawnParameters SpawnInfo;
+		
+		FVector WorldLocationToSpawn = SpawnPointArray[RandomTransformToSpawnAt].GetLocation();
+		WorldLocationToSpawn.Z += 20.f;
+		SpawnedItems.Add(GetWorld()->SpawnActor<AYafSpawnedMaster>(ItemsToSpawn[RandomItemToSpawn], WorldLocationToSpawn, ArrowComp->GetComponentRotation(), SpawnInfo));
+
+		// Add second item if required
+		if (SpawnDouble)
 		{
-			const int32 RandomItemToSpawn = FMath::RandRange(0, ItemsToSpawn.Num() - 1);
 			const int32 SecondItemToSpawn = FMath::RandRange(0, ItemsToSpawn.Num() - 1);
 
-			const int32 RandomTransformToSpawnAt = FMath::RandRange(0,2);
 			int32 SecondSpawnPoint;
 			do 
 			{
@@ -89,38 +99,16 @@ bool AYafLevelMaster::SpawnPickup()
 			}
 			while (RandomTransformToSpawnAt == SecondSpawnPoint);
 
-			const FActorSpawnParameters SpawnInfo;
-		
-			FVector WorldLocationToSpawn = SpawnPointArray[RandomTransformToSpawnAt].GetLocation();
-			WorldLocationToSpawn.Z += 20.f;
-			SpawnedItems.Add(GetWorld()->SpawnActor<AYafSpawnedMaster>(ItemsToSpawn[RandomItemToSpawn], WorldLocationToSpawn, ArrowComp->GetComponentRotation(), SpawnInfo));
 
 			WorldLocationToSpawn = SpawnPointArray[SecondSpawnPoint].GetLocation();
 			WorldLocationToSpawn.Z += 20.f;
 			SpawnedItems.Add(GetWorld()->SpawnActor<AYafSpawnedMaster>(ItemsToSpawn[SecondItemToSpawn], WorldLocationToSpawn, ArrowComp->GetComponentRotation(), SpawnInfo));
 			
-			if (SpawnedItems.Num() > 0)
-			{
-				return true;
-			}
 		}
-		else
+		
+		if (SpawnedItems.Num() > 0)
 		{
-			// Randomly generated the spawned item from the list of those available and a random location
-			const int32 RandomItemToSpawn = FMath::RandRange(0, ItemsToSpawn.Num() - 1);
-			const int32 RandomTransformToSpawnAt = FMath::RandRange(0,2);
-		
-			const FActorSpawnParameters SpawnInfo;
-		
-			FVector WorldLocationToSpawn = SpawnPointArray[RandomTransformToSpawnAt].GetLocation();
-		
-			WorldLocationToSpawn.Z += 20.f;
-		
-			SpawnedItems.Add(GetWorld()->SpawnActor<AYafSpawnedMaster>(ItemsToSpawn[RandomItemToSpawn], WorldLocationToSpawn, ArrowComp->GetComponentRotation(), SpawnInfo));
-			if (SpawnedItems.Num() > 0)
-			{
-				return true;
-			}
+			return true;
 		}
 	}
 
