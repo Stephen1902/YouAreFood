@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "PlayerWidget.generated.h"
 
+class UProgressBar;
 class UOverlay;
 class UTextBlock;
 class UButton;
@@ -21,10 +22,15 @@ class YOUAREFOOD_API UPlayerWidget : public UUserWidget
 public:
 	void SetCurrentDistanceText(const FText NewDistance) const;
 	void GameOver(const FText TotalDistance, const FText RecordDistance, bool IsNewRecord) const;
+	void SetPlayerLife(const float LifeAsPercent);
+	
 	
 protected:
 	// Sets default values
 	virtual void NativeConstruct() override;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Player Widget", meta=(BindWidget))
+	UProgressBar* PlayerLifeBar;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Player Widget", meta=(BindWidget))
 	UTextBlock* CurrentDistanceText;

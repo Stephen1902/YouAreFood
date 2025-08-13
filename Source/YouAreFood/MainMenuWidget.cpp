@@ -14,7 +14,7 @@ void UMainMenuWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	GetHighScore();
+	GetSavedInfo();
 
 	StartGameButton->OnClicked.AddDynamic(this, &UMainMenuWidget::OnStartGameButtonClicked);
 	QuitButton->OnClicked.AddDynamic(this, &UMainMenuWidget::OnQuitButtonClicked);
@@ -22,11 +22,20 @@ void UMainMenuWidget::NativeConstruct()
 	RecordsOkButton->OnClicked.AddDynamic(this, &UMainMenuWidget::OnRecordsOkButtonClicked);
 	AboutButton->OnClicked.AddDynamic(this, &UMainMenuWidget::OnAboutButtonClicked);
 	ResetHighScoreCheck->OnCheckStateChanged.AddDynamic(this, &UMainMenuWidget::OnResetScoreClicked);
+	HelpPageButton->OnClicked.AddDynamic(this, &UMainMenuWidget::OnHelpPageButtonClicked);
 }
 
 void UMainMenuWidget::OnStartGameButtonClicked()
 {
-	UGameplayStatics::OpenLevel(GetWorld(), FName("DefaultLevel"));	
+	if (!bShowHintPage)
+	{
+		UGameplayStatics::OpenLevel(GetWorld(), FName("DefaultLevel"));
+	}
+	else
+	{
+		HelpPageOverlay->SetVisibility(ESlateVisibility::Visible);
+		MainMenuOverlay->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 
 void UMainMenuWidget::OnAboutButtonClicked()
@@ -74,7 +83,31 @@ void UMainMenuWidget::OnResetScoreClicked(bool bIsChecked)
 	RecordsOkButton->SetIsEnabled(bIsChecked);
 }
 
-void UMainMenuWidget::GetHighScore()
+void UMainMenuWidget::OnHelpPageButtonClicked()
+{
+	if (DoNotShowHelpPage->IsChecked())
+	{
+		if (UGameplayStatics::DoesSaveGameExist("SaveGameSlot", 0))
+		{
+			USaveGame* SaveGameRef = UGameplayStatics::LoadGameFromSlot("SaveGameSlot", 0);
+			// Cast to the specific instance of the SaveGame class for the HighScore variable
+			UYafSaveGame* ThisSaveGameRef = Cast<UYafSaveGame>(SaveGameRef);
+
+			ThisSaveGameRef->bShowHelpScreen = false;
+			UGameplayStatics::SaveGameToSlot(ThisSaveGameRef, "SaveGameSlot", 0);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Tried to reset the high score but the save game does not exist."));
+		}
+
+		DoNotShowHelpPage->SetIsChecked(false);
+	}
+
+	UGameplayStatics::OpenLevel(GetWorld(), FName("DefaultLevel"));	
+}
+
+void UMainMenuWidget::GetSavedInfo()
 {
 	USaveGame* SaveGameRef;
 	// Check if a saved game already exists and if not, create it
@@ -94,6 +127,8 @@ void UMainMenuWidget::GetHighScore()
 	{
 		const FText HighScoreToDisplay = FText::FromString(FString::FromInt(ThisSaveGameRef->SavedHighScore));
 		HighScoreText->SetText(HighScoreToDisplay);
+
+		bShowHintPage = ThisSaveGameRef->bShowHelpScreen;
 	}
 	else
 	{

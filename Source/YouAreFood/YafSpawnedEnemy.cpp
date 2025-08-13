@@ -16,7 +16,6 @@ AYafSpawnedEnemy::AYafSpawnedEnemy()
 
 void AYafSpawnedEnemy::OnCollisionOverlap(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Hit Enemy Box"));
 	if (PlayerPawnRef && PlayerPawnRef == OtherActor)
 	{
 		// Check if the player has the shield
@@ -26,7 +25,7 @@ void AYafSpawnedEnemy::OnCollisionOverlap(UPrimitiveComponent* HitComp, AActor* 
 		}
 		else
 		{
-			// Player does not have the shield and it's game over.
+			// Player does not have the shield, and it's game over.
 			PlayerPawnRef->GameOver();
 		}
 	}

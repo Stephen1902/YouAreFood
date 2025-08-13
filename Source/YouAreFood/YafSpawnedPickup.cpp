@@ -18,10 +18,12 @@ void AYafSpawnedPickup::OnMeshOverlap(UPrimitiveComponent* HitComp, AActor* Othe
 			}
 		case EPickupTypes::PT_Food:
 			{
+				PlayerPawnRef->AdjustLife(RestoresFoodAmount);
 				break;	
 			}
 		case EPickupTypes::PT_Boost:
 			{
+				PlayerPawnRef->AdjustSpeed(BoostTimeInSeconds);
 				break;
 			}
 		}

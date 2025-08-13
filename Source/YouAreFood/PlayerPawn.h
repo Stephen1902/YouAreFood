@@ -64,6 +64,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Options")
 	float TurnDegrees;
 	
+	UPROPERTY(Category = "Player Pawn", EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	float LifeDrainPerSecond;
+	
 	UPROPERTY()
 	UTimelineComponent* TurnTimeline;
 
@@ -72,12 +75,6 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = " Gameplay")
 	void SetMaxSpeed(const float SpeedIn) { MovementSpeed += SpeedIn; }
-	
-	UFUNCTION(BlueprintCallable, Category = " Gameplay")
-	void SetGameIsPaused(const bool PausedIn) { bGameIsPaused = PausedIn; }
-
-	UFUNCTION(BlueprintCallable, Category = " Gameplay")
-	void SetCanTurn( const bool CanTurnIn) { bCanTurn = CanTurnIn; }
 
 	void SetDesiredRotation(const float NewRotation) { DesiredRotation = NewRotation; }
 
@@ -110,6 +107,8 @@ public:
 	void SetHasShield(UStaticMesh* ShieldMesh, FVector ScaleToSet);
 	void RemoveShield();
 	void GameOver();
+	void AdjustLife(const float LifeAmountIn);
+	void AdjustSpeed(const float SpeedMultiplier);
 private:
 	void TurnLeft();
 	void TurnRight();
@@ -194,4 +193,10 @@ private:
 
 	bool bHasShield;
 	bool bGameOver;
+
+	void DrainPlayerLife(float TimeIn);
+
+	FTimerHandle SpeedMultiplierTimer;
+	UFUNCTION()
+	void SpeedMultiplierEnded();
 };

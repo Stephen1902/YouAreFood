@@ -49,6 +49,15 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Main Menu Widget", meta=(BindWidget))
 	UButton* RecordsOkButton;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Main Menu Widget", meta=(BindWidget))
+	UOverlay* HelpPageOverlay;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Main Menu Widget", meta=(BindWidget))
+	UCheckBox* DoNotShowHelpPage;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Main Menu Widget", meta=(BindWidget))
+	UButton* HelpPageButton;
+
 private:
 	UFUNCTION()
 	void OnStartGameButtonClicked();
@@ -68,5 +77,10 @@ private:
 	UFUNCTION()
 	void OnResetScoreClicked(bool bIsChecked);
 
-	void GetHighScore();
+	UFUNCTION()
+	void OnHelpPageButtonClicked();
+
+	void GetSavedInfo();
+
+	bool bShowHintPage;
 };

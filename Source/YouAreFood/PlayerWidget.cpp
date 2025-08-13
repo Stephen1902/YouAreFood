@@ -4,6 +4,7 @@
 
 #include "Components/Button.h"
 #include "Components/Overlay.h"
+#include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -36,6 +37,11 @@ void UPlayerWidget::GameOver(const FText TotalDistance, const FText RecordDistan
 	{
 		NewRecordText->SetVisibility(ESlateVisibility::Visible);
 	}
+}
+
+void UPlayerWidget::SetPlayerLife(const float LifeAsPercent)
+{
+	PlayerLifeBar->SetPercent(LifeAsPercent);
 }
 
 void UPlayerWidget::OnRetryButtonClicked()

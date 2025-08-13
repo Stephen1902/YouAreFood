@@ -19,5 +19,5 @@ public:
 	int32 SavedHighScore;
 
 	UPROPERTY(EditAnywhere, Category = "Saved Game Options")
-	bool bShowHelpScreen;
+	bool bShowHelpScreen = true;
 };

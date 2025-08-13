@@ -79,8 +79,7 @@ bool AYafLevelMaster::SpawnPickup()
 		// Always spawn at least 1 item
 		const int32 RandomItemToSpawn = FMath::RandRange(0, ItemsToSpawn.Num() - 1);
 		const int32 RandomTransformToSpawnAt = FMath::RandRange(0,2);
-
-		UE_LOG(LogTemp, Warning, TEXT("Spawning %s"), *ItemsToSpawn[RandomItemToSpawn].Get()->GetName());
+		
 		const FActorSpawnParameters SpawnInfo;
 		
 		FVector WorldLocationToSpawn = SpawnPointArray[RandomTransformToSpawnAt].GetLocation();

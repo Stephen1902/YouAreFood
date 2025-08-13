@@ -48,6 +48,9 @@ APlayerPawn::APlayerPawn()
 		InterpFunction.BindUFunction(this, FName("TimelineFloatReturn"));
 	}
 
+	CurrentPlayerLife = 100.0f;
+	LifeDrainPerSecond = 1.0f;
+	
 	bIsTurning = false;
 	bCanTurn = false;
 	MovementSpeed = 500.f;
@@ -169,6 +172,7 @@ void APlayerPawn::Tick(float DeltaTime)
 	}
 
 	AddToDistanceTravelled(DeltaTime);
+	DrainPlayerLife(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -411,5 +415,52 @@ void APlayerPawn::ChangeInputMode(bool ShouldShowMouse) const
 			PC->SetInputMode(FInputModeGameOnly());
 		}
 	}
+}
+
+void APlayerPawn::DrainPlayerLife(float TimeIn)
+{
+	CurrentPlayerLife -= LifeDrainPerSecond * TimeIn;
+
+	if (PlayerWidgetRef)
+	{
+		PlayerWidgetRef->SetPlayerLife(CurrentPlayerLife / 100.f);
+	}
+
+	if (CurrentPlayerLife <= 0.f && !bGameOver)
+	{
+		GameOver();
+	}
+}
+
+void APlayerPawn::SpeedMultiplierEnded()
+{
+	GetWorld()->GetTimerManager().ClearTimer(SpeedMultiplierTimer);
+	MovementSpeed = MovementSpeed / 2.0f;
+}
+
+void APlayerPawn::AdjustLife(const float LifeAmountIn)
+{
+	CurrentPlayerLife = FMath::Clamp(CurrentPlayerLife + LifeAmountIn, 0.f, 100.f);
+
+	if (PlayerWidgetRef)
+	{
+		PlayerWidgetRef->SetPlayerLife(CurrentPlayerLife / 100.f);
+	}
+}
+
+void APlayerPawn::AdjustSpeed(const float SpeedMultiplier)
+{
+	// Check if the player already has a speed booster active.  Clear it.
+	if (GetWorld()->GetTimerManager().IsTimerActive(SpeedMultiplierTimer))
+    {
+    	GetWorld()->GetTimerManager().ClearTimer(SpeedMultiplierTimer);
+    }
+	else
+	{
+		// Adjust the speed
+		MovementSpeed = MovementSpeed * 2.0f;
+	}
+	
+	GetWorld()->GetTimerManager().SetTimer(SpeedMultiplierTimer, this, &APlayerPawn::SpeedMultiplierEnded, SpeedMultiplier, false, SpeedMultiplier);
 }
 

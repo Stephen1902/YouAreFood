@@ -61,7 +61,6 @@ void AYafSpawnedMaster::OnMeshOverlap(UPrimitiveComponent* HitComp, AActor* Othe
 		// Check what type of actor the player has his the mesh of
 		if (SpawnedActorType == ESpawnedTypes::ST_Static)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Hit Static"));
 			// Turn off all collisions so that overlaps only get triggered once
 			StaticMeshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 
@@ -82,9 +81,8 @@ void AYafSpawnedMaster::OnMeshOverlap(UPrimitiveComponent* HitComp, AActor* Othe
 
 		if (SpawnedActorType == ESpawnedTypes::ST_Enemy)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Hit Enemy"));
 			// The player has hit the mesh of an enemy much larger than them.  It's game over.
-			//PlayerPawnRef->GameOver();
+			PlayerPawnRef->GameOver();
 		}
 	}
 }
