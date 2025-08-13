@@ -9,6 +9,9 @@ AYafGameStateBase::AYafGameStateBase()
 	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	CreateTurn = 0;
 
+	CurrentPieceYaw = 0;
+	LevelMasterRef = nullptr;
+	bLastSpawnWasFlat = false;
 	DistanceBetweenLanes = 200.f;
 }
 
@@ -108,7 +111,7 @@ void AYafGameStateBase::TryToSpawnPickup()
 void AYafGameStateBase::SpawnNextLevelPiece(const bool SpawnStraight, const int32 PieceToSpawn, const bool SpawnPickup)
 {
 	AYafLevelMaster* NewLevelPiece;
-		
+	
 	if (SpawnStraight)
 	{
 		NewLevelPiece = GetWorld()->SpawnActor<AYafLevelMaster>(StraightPiecesToSpawn[PieceToSpawn], SpawnTransform, SpawnInfo);
@@ -120,13 +123,18 @@ void AYafGameStateBase::SpawnNextLevelPiece(const bool SpawnStraight, const int3
 		
 	SpawnTransform = NewLevelPiece->GetNextSpawnPoint();
 	NewLevelPiece->GetSpawnPointInfo(SpawnLocation, SpawnRotation);
-	if (FMath::RandRange(0, 90) > SpawnEnemyChance)
+
+	// Don't spawn any random parts when the game starts to give the player time to get ready
+	if (SpawnPickup)
 	{
-		NewLevelPiece->SpawnPickup();
-	}
-	else
-	{
-		SpawnEnemyChance = 0;
-		NewLevelPiece->SpawnEnemy();
+		if (FMath::RandRange(0, 90) > SpawnEnemyChance)
+		{
+			NewLevelPiece->SpawnPickup();
+		}
+		else
+		{
+			SpawnEnemyChance = 0;
+			NewLevelPiece->SpawnEnemy();
+		}
 	}
 }
