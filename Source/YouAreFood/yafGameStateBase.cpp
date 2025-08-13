@@ -14,12 +14,11 @@ AYafGameStateBase::AYafGameStateBase()
 
 void AYafGameStateBase::TryToSpawnNextPiece()
 {
-	SpawnPickupChance += 25;
 	CreateTurn += 1;
 	bool CreatedTurn = false;
 
 	// If more than 12 straight pieces have been spawned, chance of a turn occuring, if there are turn pieces in the array
-	if (TurnPiecesToSpawn.Num() > 0 && CreateTurn > /*12*/ 4)
+	if (TurnPiecesToSpawn.Num() > 0 && CreateTurn > 12)
 	{
 		// Always turn if 18 straights in a row
 		if (FMath::RandRange(0, 99) > 49 || CreateTurn > 18)
@@ -37,6 +36,9 @@ void AYafGameStateBase::TryToSpawnNextPiece()
 	// A turn wasn't created, create a straight
 	if (!CreatedTurn)
 	{
+		// Increase the chance of spawning an enemy by 10 to increase the chance of one being spawned this time.
+		SpawnEnemyChance += 10;
+		
 		// Don't allow for the possibility of 2 non-special straight pieces to spawn consecutively and check there are special straights in the array
 		if (StraightPiecesToSpawn.Num() > 1 && FMath::RandRange(25, 124) < SpecialStraightSpawnChance)
 		{
@@ -55,7 +57,7 @@ void AYafGameStateBase::TryToSpawnNextPiece()
 			SpecialStraightSpawnChance += 25;
 
 			// As it's a straight piece, try to spawn a pickup on it
-            TryToSpawnPickup();
+            //TryToSpawnPickup();
 		}
 
 
@@ -118,8 +120,13 @@ void AYafGameStateBase::SpawnNextLevelPiece(const bool SpawnStraight, const int3
 		
 	SpawnTransform = NewLevelPiece->GetNextSpawnPoint();
 	NewLevelPiece->GetSpawnPointInfo(SpawnLocation, SpawnRotation);
-	if (SpawnPickup)
+	if (FMath::RandRange(0, 90) > SpawnEnemyChance)
 	{
 		NewLevelPiece->SpawnPickup();
+	}
+	else
+	{
+		SpawnEnemyChance = 0;
+		NewLevelPiece->SpawnEnemy();
 	}
 }

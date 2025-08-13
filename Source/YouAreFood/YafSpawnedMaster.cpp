@@ -19,7 +19,7 @@ AYafSpawnedMaster::AYafSpawnedMaster()
 	StaticMeshComp->SetCollisionResponseToAllChannels(ECR_Overlap);
 	StaticMeshComp->SetGenerateOverlapEvents(true);
 
-	StaticMeshComp->OnComponentBeginOverlap.AddDynamic(this, &AYafSpawnedMaster::OnBeginOverlap);
+	StaticMeshComp->OnComponentBeginOverlap.AddDynamic(this, &AYafSpawnedMaster::OnMeshOverlap);
 	
 	SpawnedActorType = ESpawnedTypes::ST_Static;
 }
@@ -53,46 +53,39 @@ void AYafSpawnedMaster::DestroySpawnedActor()
 	Destroy();
 }
 
-void AYafSpawnedMaster::OnBeginOverlap(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AYafSpawnedMaster::OnMeshOverlap(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	// Check what was hit is the player
 	if (PlayerPawnRef && OtherActor == PlayerPawnRef)
 	{
-		// Turn off all collisions so that overlaps only get triggered once
-		StaticMeshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-		
-		// See is this actor stops the player
-		if (SpawnedActorType != ESpawnedTypes::ST_Pickup)
+		// Check what type of actor the player has his the mesh of
+		if (SpawnedActorType == ESpawnedTypes::ST_Static)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Hit Static"));
+			// Turn off all collisions so that overlaps only get triggered once
+			StaticMeshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+
 			// The player has hit something they can't pick up.  Check if they have a shield.
 			if (PlayerPawnRef->GetHasShield())
 			{
 				// They do.  Remove it.
 				PlayerPawnRef->RemoveShield();
-				// Check if the type is static and remove it if it is
-				if (SpawnedActorType == ESpawnedTypes::ST_Static)
-				{
-					DestroySpawnedActor();
-				}
-				else
-				{
-					// The type is an enemy, call animations etc.
-				}
+				// Remove the item that has been hit.
+				DestroySpawnedActor();
 			}
 			else
 			{
-				// TODO Call specific animations etc. for enemies that have eaten the player
 				// Tell the player it's game over
 				PlayerPawnRef->GameOver();
 			}
 		}
-		else
-		{
-			// This item is a pickup.  Tell the player.
-			
-			//DestroySpawnedActor();
-		}
 
+		if (SpawnedActorType == ESpawnedTypes::ST_Enemy)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Hit Enemy"));
+			// The player has hit the mesh of an enemy much larger than them.  It's game over.
+			//PlayerPawnRef->GameOver();
+		}
 	}
 }
 

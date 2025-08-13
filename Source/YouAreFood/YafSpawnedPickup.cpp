@@ -2,7 +2,7 @@
 
 #include "YafSpawnedPickup.h"
 
-void AYafSpawnedPickup::OnBeginOverlap(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AYafSpawnedPickup::OnMeshOverlap(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	//Super::OnBeginOverlap(HitComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
@@ -26,4 +26,6 @@ void AYafSpawnedPickup::OnBeginOverlap(UPrimitiveComponent* HitComp, AActor* Oth
 			}
 		}
 	}
+
+	Destroy();
 }

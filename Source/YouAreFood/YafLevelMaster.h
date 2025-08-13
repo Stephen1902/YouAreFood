@@ -29,6 +29,7 @@ public:
 	AYafLevelMaster();
 
 	bool SpawnPickup();
+	bool SpawnEnemy();
 
 	UBoxComponent* GetStartCollision() const { return StartCollision; }
 	UArrowComponent* GetArrowComp() const { return ArrowComp; }
@@ -76,6 +77,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
 	TArray<TSubclassOf<class AYafSpawnedMaster>> ItemsToSpawn;
 
+	// Items from the Spawned Enemy class that can be spawned by this level piece
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
+	TArray<TSubclassOf<class AYafSpawnedEnemy>> EnemiesToSpawn;
+	
 	// Non-Player vehicles to spawn in the level for the player to hit
 //	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
 //	TArray<TSubclassOf<class AEVRVehicleMaster>> NonPlayerVehicles;

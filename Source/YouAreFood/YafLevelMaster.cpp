@@ -6,6 +6,7 @@
 #include "PlayerPawn.h"
 #include "yafGameStateBase.h"
 #include "YafSpawnArrowComponent.h"
+#include "YafSpawnedEnemy.h"
 #include "Components/BoxComponent.h"
 
 // Sets default values
@@ -115,6 +116,38 @@ bool AYafLevelMaster::SpawnPickup()
 	return false;
 }
 
+bool AYafLevelMaster::SpawnEnemy()
+{
+	if (SpawnPointArray.Num() > 0 && EnemiesToSpawn.Num() > 0)
+	{
+		const int32 RandomItemToSpawn = FMath::RandRange(0, EnemiesToSpawn.Num() - 1);
+		const int32 RandomTransformToSpawnAt = FMath::RandRange(0,2);
+
+		const FActorSpawnParameters SpawnInfo;
+		
+		FVector WorldLocationToSpawn = SpawnPointArray[RandomTransformToSpawnAt].GetLocation();
+		WorldLocationToSpawn.Z += 20.f;
+		FRotator WorldRotationToSpawn = ArrowComp->GetComponentRotation();
+
+		// If the enemy has spawned in the middle, randomly select which way they face.  If they spawn on the right, always turn them around
+		if ((RandomTransformToSpawnAt == 1 && FMath::RandBool()) || RandomTransformToSpawnAt == 2)
+		{
+				WorldRotationToSpawn.Yaw += 180.f;
+		}
+		
+		SpawnedItems.Add(GetWorld()->SpawnActor<AYafSpawnedMaster>(EnemiesToSpawn[RandomItemToSpawn], WorldLocationToSpawn, WorldRotationToSpawn, SpawnInfo));
+		
+	}
+		
+	if (SpawnedItems.Num() > 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Enemy Spawned"));
+		return true;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Enemy failed to spawn."))
+	return false;
+}
+
 void AYafLevelMaster::OnBeginOverlap(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor == PlayerPawnRef)
@@ -204,7 +237,11 @@ void AYafLevelMaster::DestroyThisPiece()
 	{
 		for (int32 i = 0; i < SpawnedItems.Num(); ++i)
 		{
-			SpawnedItems[i]->Destroy();
+			// Check if the item still exists in the world, destroy it if it does
+			if (SpawnedItems[i])
+			{
+				SpawnedItems[i]->Destroy();
+			}
 		}
 	}
 		

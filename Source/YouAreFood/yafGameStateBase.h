@@ -60,7 +60,7 @@ private:
 	float CurrentPieceYaw;
 
 	int32 SpecialStraightSpawnChance = 0;
-	int32 SpawnPickupChance = 0;
+	int32 SpawnEnemyChance = 0;
 
 	UPROPERTY()
 	AYafLevelMaster* LevelMasterRef;
