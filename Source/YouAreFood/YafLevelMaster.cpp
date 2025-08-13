@@ -56,6 +56,8 @@ AYafLevelMaster::AYafLevelMaster()
 	
 	TurnSpawnChance = 0.f;
 	BlockSpawnChance = 50;
+
+	LastSpawnedType = ESpawnedTypes::ST_Enemy;
 }
 
 // Called when the game starts or when spawned
@@ -70,7 +72,59 @@ void AYafLevelMaster::BeginPlay()
 
 bool AYafLevelMaster::SpawnPickup()
 {
-	return true;
+	// Check for valid spawn points and valid items in this level piece's array
+	if (SpawnPointArray.Num() > 0 && ItemsToSpawn.Num() > 0)
+	{
+		// Randomly decide if 1 or 2 items are to be spawned
+		if (FMath::RandBool())
+		{
+			const int32 RandomItemToSpawn = FMath::RandRange(0, ItemsToSpawn.Num() - 1);
+			const int32 SecondItemToSpawn = FMath::RandRange(0, ItemsToSpawn.Num() - 1);
+
+			const int32 RandomTransformToSpawnAt = FMath::RandRange(0,2);
+			int32 SecondSpawnPoint;
+			do 
+			{
+				SecondSpawnPoint = FMath::RandRange(0,2);
+			}
+			while (RandomTransformToSpawnAt == SecondSpawnPoint);
+
+			const FActorSpawnParameters SpawnInfo;
+		
+			FVector WorldLocationToSpawn = SpawnPointArray[RandomTransformToSpawnAt].GetLocation();
+			WorldLocationToSpawn.Z += 20.f;
+			SpawnedItems.Add(GetWorld()->SpawnActor<AYafSpawnedMaster>(ItemsToSpawn[RandomItemToSpawn], WorldLocationToSpawn, ArrowComp->GetComponentRotation(), SpawnInfo));
+
+			WorldLocationToSpawn = SpawnPointArray[SecondSpawnPoint].GetLocation();
+			WorldLocationToSpawn.Z += 20.f;
+			SpawnedItems.Add(GetWorld()->SpawnActor<AYafSpawnedMaster>(ItemsToSpawn[SecondItemToSpawn], WorldLocationToSpawn, ArrowComp->GetComponentRotation(), SpawnInfo));
+			
+			if (SpawnedItems.Num() > 0)
+			{
+				return true;
+			}
+		}
+		else
+		{
+			// Randomly generated the spawned item from the list of those available and a random location
+			const int32 RandomItemToSpawn = FMath::RandRange(0, ItemsToSpawn.Num() - 1);
+			const int32 RandomTransformToSpawnAt = FMath::RandRange(0,2);
+		
+			const FActorSpawnParameters SpawnInfo;
+		
+			FVector WorldLocationToSpawn = SpawnPointArray[RandomTransformToSpawnAt].GetLocation();
+		
+			WorldLocationToSpawn.Z += 20.f;
+		
+			SpawnedItems.Add(GetWorld()->SpawnActor<AYafSpawnedMaster>(ItemsToSpawn[RandomItemToSpawn], WorldLocationToSpawn, ArrowComp->GetComponentRotation(), SpawnInfo));
+			if (SpawnedItems.Num() > 0)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void AYafLevelMaster::OnBeginOverlap(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -140,9 +194,9 @@ void AYafLevelMaster::GetReferences()
 	}
 	else
 	{
-		GameStateRef->SetYafLevelMasterRef(this);
+		GameStateRef->SetLevelMasterRef(this);
 	}
-
+	
 	PlayerPawnRef = Cast<APlayerPawn>(GetWorld()->GetFirstPlayerController()->GetPawn());
 
 	if (!PlayerPawnRef)
@@ -158,5 +212,13 @@ bool AYafLevelMaster::SpawnRoadsidePiece()
 
 void AYafLevelMaster::DestroyThisPiece()
 {
+	if (SpawnedItems.Num() > 0)
+	{
+		for (int32 i = 0; i < SpawnedItems.Num(); ++i)
+		{
+			SpawnedItems[i]->Destroy();
+		}
+	}
+		
 	Destroy();
 }

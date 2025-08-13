@@ -6,7 +6,7 @@
 #include "GameFramework/GameStateBase.h"
 #include "yafGameStateBase.generated.h"
 
-class AEVRLevelMaster;
+class AYafLevelMaster;
 /**
  * 
  */
@@ -14,31 +14,31 @@ UCLASS()
 class YOUAREFOOD_API AYafGameStateBase : public AGameStateBase
 {
 	GENERATED_BODY()
-	
+
+	AYafGameStateBase();
 public:
-/*	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Level Pieces")
-	TArray<TSubclassOf<AEVRLevelMaster>> StraightPiecesToSpawn;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Level Pieces")
+	TArray<TSubclassOf<AYafLevelMaster>> StraightPiecesToSpawn;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Level Pieces")
-	TArray<TSubclassOf<AEVRLevelMaster>> TurnPiecesToSpawn;
-*/
+	TArray<TSubclassOf<AYafLevelMaster>> TurnPiecesToSpawn;
+
 	// Distance between lanes for vehicles turning between them
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Options")
 	float DistanceBetweenLanes;
 
-	bool TryToSpawnNextPiece();
+	void SetLevelMasterRef(AYafLevelMaster* ReferenceIn) { LevelMasterRef = ReferenceIn; }
+	
+	void TryToSpawnNextPiece();
 
 	void SetCurrentPieceYaw(const float NewYaw);
 
 	FRotator GetCurrentRotation() const { return SpawnRotation; }
 
-	void SetYafLevelMasterRef(class AYafLevelMaster* ReferenceIn) { LevelMasterRef = ReferenceIn; }
-
 	float GetDistanceBetweenLanes() const { return DistanceBetweenLanes; }
 
 	void SetLastPieceWasFlat(const bool WasFlatIn ) { bLastSpawnWasFlat = WasFlatIn; }
 	bool GetLastPieceWasFlat() const { return bLastSpawnWasFlat; }
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -52,7 +52,7 @@ private:
 	FActorSpawnParameters SpawnInfo;
 	
 	void SpawnStartLevel();
-	void SpawnNextLevelPiece(const bool SpawnStraight, const int32 PieceToSpawn);
+	void SpawnNextLevelPiece(const bool SpawnStraight, const int32 PieceToSpawn, const bool SpawnPickup);
 	void TryToSpawnPickup();
 
 	int32 CreateTurn;
@@ -63,7 +63,7 @@ private:
 	int32 SpawnPickupChance = 0;
 
 	UPROPERTY()
-	class AYafLevelMaster* LevelMasterRef;
-
+	AYafLevelMaster* LevelMasterRef;
+	
 	bool bLastSpawnWasFlat;
 };

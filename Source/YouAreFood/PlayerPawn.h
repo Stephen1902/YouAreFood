@@ -7,9 +7,9 @@
 #include "GameFramework/Pawn.h"
 #include "PlayerPawn.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDistanceUpdated, FText, DistanceUpdatedText);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDistanceUpdated, FText, DistanceUpdatedText);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPauseKeyPressed);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnGameOver, FText, DistanceThisGame, FText, PlayerHighScore, bool, NewHighScore);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnGameOver, FText, DistanceThisGame, FText, PlayerHighScore, bool, NewHighScore);
 
 UCLASS()
 class YOUAREFOOD_API APlayerPawn : public APawn
@@ -20,15 +20,15 @@ public:
 	// Sets default values for this pawn's properties
 	APlayerPawn();
 
-	UPROPERTY(BlueprintAssignable, Category = "Player Vehicle Gameplay")
+/*	UPROPERTY(BlueprintAssignable, Category = "Player Gameplay")
 	FOnDistanceUpdated OnDistanceUpdated;
-
-	UPROPERTY(BlueprintAssignable, Category = "Player Vehicle Gameplay")
+*/
+	UPROPERTY(BlueprintAssignable, Category = "Player Gameplay")
 	FOnPauseKeyPressed OnPauseKeyPressed;
-
-	UPROPERTY(BlueprintAssignable, Category = "Player Vehicle Gameplay")
+/*
+	UPROPERTY(BlueprintAssignable, Category = "Player Gameplay")
 	FOnGameOver OnGameOver;
-	
+*/	
 protected:
 	UPROPERTY(Category = "Player Pawn", EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	USceneComponent* SceneComponent;
@@ -43,7 +43,7 @@ protected:
 	class UCameraComponent* CameraComp;
 
 	UPROPERTY(Category = "Player Pawn", EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> PlayerWidget;
+	TSubclassOf<class UPlayerWidget> PlayerWidget;
 
 	// Units in cm the player will move forward per second
 	UPROPERTY(EditDefaultsOnly, Category = "Movement Options")
@@ -97,7 +97,7 @@ protected:
 	/** Declare a delegate to call with TimeLineFloatReturn */
 	FOnTimelineFloat InterpFunction{};
 
-	// Current speed of the , when moving
+	// Current speed of the player when moving
 	float CurrentSpeed;
 public:	
 	// Called every frame
@@ -105,6 +105,10 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	bool GetHasShield() const { return bHasShield; }
+	void RemoveShield();
+	void GameOver();
 private:
 	void TurnLeft();
 	void TurnRight();
@@ -176,13 +180,17 @@ private:
 	UPROPERTY()
 	class USaveGame* SaveGameRef;
 	
-//	UPROPERTY()
-//	class UEVRSaveGame* ThisSaveGameRef;
+	UPROPERTY()
+	class UYafSaveGame* ThisSaveGameRef;
 	
 	FString SaveGameSlot;
 	void SetSaveGameReferences();
 
-	void ShowMouseAndLockDisplay() const;
+	void ChangeInputMode(bool ShouldShowMouse) const;
 
+	UPROPERTY()
+	UPlayerWidget* PlayerWidgetRef;
+
+	bool bHasShield;
 	bool bGameOver;
 };

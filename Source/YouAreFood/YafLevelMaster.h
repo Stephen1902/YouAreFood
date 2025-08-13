@@ -5,9 +5,11 @@
 #include "CoreMinimal.h"
 #include "Components/ArrowComponent.h"
 #include "GameFramework/Actor.h"
+#include "YafSpawnedMaster.h"
 #include "YafLevelMaster.generated.h"
 
 class UYafSpawnArrowComponent;
+class UBoxComponent;
 
 UENUM(BlueprintType)
 enum class EFloorType : uint8
@@ -26,6 +28,11 @@ public:
 	// Sets default values for this actor's properties
 	AYafLevelMaster();
 
+	bool SpawnPickup();
+
+	UBoxComponent* GetStartCollision() const { return StartCollision; }
+	UArrowComponent* GetArrowComp() const { return ArrowComp; }
+	EFloorType GetFloorType() const { return FloorType; }
 protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
@@ -35,13 +42,13 @@ protected:
 	UStaticMeshComponent* MeshCompBase;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
-	class UArrowComponent* ArrowComp;
+	UArrowComponent* ArrowComp;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
-	class UBoxComponent* EndCollision;
+	UBoxComponent* EndCollision;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
-	class UBoxComponent* StartCollision;
+	UBoxComponent* StartCollision;
 		
 	// A component for spawning an item the player can hit.  Change Yaw to 180 if not to be used.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
@@ -66,8 +73,8 @@ protected:
 	EFloorType FloorType;
 
 	// Items derived from the Spawned Items Master class that can be spawned by this level piece
-//	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
-//	TArray<TSubclassOf<class AEVRSpawnMaster>> ItemsToSpawn;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
+	TArray<TSubclassOf<class AYafSpawnedMaster>> ItemsToSpawn;
 
 	// Non-Player vehicles to spawn in the level for the player to hit
 //	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
@@ -77,8 +84,6 @@ protected:
 //	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
 //	TArray<TSubclassOf<class AEVRRoadsideSpawns>> SidePiecesToSpawn;
 	
-	bool SpawnPickup();
-
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -91,6 +96,9 @@ public:
 
 	void GetSpawnPointInfo(FVector &NewSpawnLocation, FRotator &NewSpawnRotation) const;
 	int32 GetNumberOfLanes() const { return NumberOfLanes; }
+
+	void SetHasTurnedPlayer() { bHasTurnedPlayer = true; }
+	bool GetHasTurnedPlayer() const { return bHasTurnedPlayer; }
 private:
 	// Number of lanes in this piece so the player position is set correctly
 	int32 NumberOfLanes;
@@ -107,6 +115,10 @@ private:
 
 	UPROPERTY()
 	TArray<FTransform> SpawnPointArray;
+
+	UPROPERTY()
+	TArray<AYafSpawnedMaster*> SpawnedItems;
+	int32 LastSpawnPoint = -1;
 	
 	bool SpawnRoadsidePiece();
 	
@@ -115,5 +127,7 @@ private:
 	
 	void DestroyThisPiece();
 
-	bool bHasTurnedVehicle = false;
+	bool bHasTurnedPlayer = false;
+
+	ESpawnedTypes LastSpawnedType;
 };
