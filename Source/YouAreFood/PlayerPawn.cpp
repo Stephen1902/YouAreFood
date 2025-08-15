@@ -21,13 +21,13 @@ APlayerPawn::APlayerPawn()
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(SceneComponent);
 	
-	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh Comp"));
-	StaticMeshComp->SetMobility(EComponentMobility::Movable);
-	StaticMeshComp->SetupAttachment(SceneComponent);
-	StaticMeshComp->OnComponentBeginOverlap.AddDynamic(this, &APlayerPawn::OnMeshBeginOverlap);
+	SkeletalMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh Comp"));
+	SkeletalMeshComp->SetMobility(EComponentMobility::Movable);
+	SkeletalMeshComp->SetupAttachment(SceneComponent);
+	SkeletalMeshComp->OnComponentBeginOverlap.AddDynamic(this, &APlayerPawn::OnMeshBeginOverlap);
 
 	ShieldMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Shield Mesh Comp"));
-	ShieldMeshComp->SetupAttachment(StaticMeshComp);
+	ShieldMeshComp->SetupAttachment(SkeletalMeshComp);
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm"));
 	SpringArmComp->SetupAttachment(SceneComponent);
@@ -185,7 +185,6 @@ void APlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("PauseMenu", IE_Pressed, this, &APlayerPawn::PauseKeyPressed);
 }
 
-
 void APlayerPawn::SetHasShield(UStaticMesh* ShieldMesh, const FVector ScaleToSet)
 {
 	// Make sure there isn't already a shield in place
@@ -195,7 +194,7 @@ void APlayerPawn::SetHasShield(UStaticMesh* ShieldMesh, const FVector ScaleToSet
 		if (ShieldMesh)
 		{
 			ShieldMeshComp->SetStaticMesh(ShieldMesh);
-			ShieldMeshComp->SetRelativeScale3D(ScaleToSet);
+			//ShieldMeshComp->SetRelativeScale3D(ScaleToSet);
 		}
 	}
 }
@@ -235,6 +234,23 @@ void APlayerPawn::GameOver()
 	UGameplayStatics::SetGamePaused(GetWorld(), true);
 }
 
+void APlayerPawn::DelayedGameOver()
+{
+	// Stop the player from moving
+	bGameOver = true;
+	// Make the player mesh invisible to make it look like they've been eaten
+	FTimerHandle RemoveMeshTimer;
+	GetWorld()->GetTimerManager().SetTimer(RemoveMeshTimer, this, &APlayerPawn::RemoveMesh, 0.5f, false, 0.5f);
+	// An event has occured which requires a delayed showing of the game over screen.  Delay by 1 second.
+	FTimerHandle DelayTimer;
+	GetWorld()->GetTimerManager().SetTimer(DelayTimer, this, &APlayerPawn::GameOver, 1.0f, false, 1.0f);
+}
+
+void APlayerPawn::RemoveMesh()
+{
+	SkeletalMeshComp->SetVisibility(false);
+}
+
 void APlayerPawn::TurnLeft()
 {
 	if (!bCanTurn && LocationIndex > 0 && !bIsTurning)
@@ -257,35 +273,35 @@ void APlayerPawn::TurnRight()
 
 void APlayerPawn::Turn(const float DeltaTime)
 {
-	FVector NewLocation = StaticMeshComp->GetRelativeLocation();
-	FRotator NewRotation = StaticMeshComp->GetRelativeRotation();
+	FVector NewLocation = SkeletalMeshComp->GetRelativeLocation();
+	FRotator NewRotation = SkeletalMeshComp->GetRelativeRotation();
 	if (LastLocationIndex > LocationIndex)
 	{
-		NewLocation.Y = StaticMeshComp->GetRelativeLocation().Y - (DeltaTime * (DistanceBetweenLanes / TurnSpeed));
+		NewLocation.Y = SkeletalMeshComp->GetRelativeLocation().Y - (DeltaTime * (DistanceBetweenLanes / TurnSpeed));
 		if (TimeSinceTurnStarted <= TurnSpeed / 2)
 		{
-			NewRotation.Yaw = StaticMeshComp->GetRelativeRotation().Yaw - (DeltaTime * TurnDegrees);
+			NewRotation.Yaw = SkeletalMeshComp->GetRelativeRotation().Yaw - (DeltaTime * TurnDegrees);
 		}
 		else
 		{
-			NewRotation.Yaw = StaticMeshComp->GetRelativeRotation().Yaw + (DeltaTime * TurnDegrees);
+			NewRotation.Yaw = SkeletalMeshComp->GetRelativeRotation().Yaw + (DeltaTime * TurnDegrees);
 		}
 	}
 	else
 	{
-		NewLocation.Y = StaticMeshComp->GetRelativeLocation().Y + (DeltaTime * (DistanceBetweenLanes / TurnSpeed));
+		NewLocation.Y = SkeletalMeshComp->GetRelativeLocation().Y + (DeltaTime * (DistanceBetweenLanes / TurnSpeed));
 		if (TimeSinceTurnStarted <= TurnSpeed / 2)
 		{
-			NewRotation.Yaw = StaticMeshComp->GetRelativeRotation().Yaw + (DeltaTime * TurnDegrees);
+			NewRotation.Yaw = SkeletalMeshComp->GetRelativeRotation().Yaw + (DeltaTime * TurnDegrees);
 		}
 		else
 		{
-			NewRotation.Yaw = StaticMeshComp->GetRelativeRotation().Yaw - (DeltaTime * TurnDegrees);
+			NewRotation.Yaw = SkeletalMeshComp->GetRelativeRotation().Yaw - (DeltaTime * TurnDegrees);
 		}
 	}
 
-	StaticMeshComp->SetRelativeLocation(NewLocation);
-	StaticMeshComp->SetRelativeRotation(NewRotation);
+	SkeletalMeshComp->SetRelativeLocation(NewLocation);
+	SkeletalMeshComp->SetRelativeRotation(NewRotation);
 	
 	TimeSinceTurnStarted += DeltaTime;
 	if (TimeSinceTurnStarted >= TurnSpeed)

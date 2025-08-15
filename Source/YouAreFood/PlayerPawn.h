@@ -34,7 +34,7 @@ protected:
 	USceneComponent* SceneComponent;
 	
 	UPROPERTY(Category = "Player Pawn", EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
-	UStaticMeshComponent* StaticMeshComp;
+	USkeletalMeshComponent* SkeletalMeshComp;
 
 	UPROPERTY(Category = "Player Pawn", EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	UStaticMeshComponent* ShieldMeshComp;
@@ -107,6 +107,7 @@ public:
 	void SetHasShield(UStaticMesh* ShieldMesh, FVector ScaleToSet);
 	void RemoveShield();
 	void GameOver();
+	void DelayedGameOver();
 	void AdjustLife(const float LifeAmountIn);
 	void AdjustSpeed(const float SpeedMultiplier);
 private:
@@ -199,4 +200,6 @@ private:
 	FTimerHandle SpeedMultiplierTimer;
 	UFUNCTION()
 	void SpeedMultiplierEnded();
+
+	void RemoveMesh();
 };

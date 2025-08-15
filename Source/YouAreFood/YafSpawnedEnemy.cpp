@@ -18,6 +18,10 @@ void AYafSpawnedEnemy::OnCollisionOverlap(UPrimitiveComponent* HitComp, AActor* 
 {
 	if (PlayerPawnRef && PlayerPawnRef == OtherActor)
 	{
+		// Trigger the overlap animation in Blueprint
+		OverlapTriggered();
+		// Turn off collision so the event is only triggered once
+		CollisionComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 		// Check if the player has the shield
 		if (PlayerPawnRef->GetHasShield())
 		{
@@ -25,8 +29,10 @@ void AYafSpawnedEnemy::OnCollisionOverlap(UPrimitiveComponent* HitComp, AActor* 
 		}
 		else
 		{
-			// Player does not have the shield, and it's game over.
-			PlayerPawnRef->GameOver();
+			// Player does not have the shield, and it's game over, allowing time for the animation to play.
+			PlayerPawnRef->DelayedGameOver();
+
+
 		}
 	}
 }

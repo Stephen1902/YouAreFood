@@ -5,7 +5,7 @@
 void AYafSpawnedPickup::OnMeshOverlap(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	//Super::OnBeginOverlap(HitComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
-
+	
 	if (PlayerPawnRef && OtherActor == PlayerPawnRef)
 	{
 		// Check if this pickup is a shield and whether the player already has one

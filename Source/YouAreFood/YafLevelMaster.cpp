@@ -147,6 +147,9 @@ void AYafLevelMaster::OnBeginOverlap(UPrimitiveComponent* HitComp, AActor* Other
 {
 	if (OtherActor == PlayerPawnRef)
 	{
+		// Turn off collision so that multiple firings don't take place
+		EndCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+		
 		if (GameStateRef)
 		{
 			GameStateRef->TryToSpawnNextPiece();

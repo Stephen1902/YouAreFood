@@ -24,6 +24,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawned Items")
 	class UBoxComponent* CollisionComp;
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OverlapTriggered();
+	
 	UFUNCTION()
 	void OnCollisionOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 };
