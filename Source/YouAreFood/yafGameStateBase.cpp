@@ -13,6 +13,7 @@ AYafGameStateBase::AYafGameStateBase()
 	LevelMasterRef = nullptr;
 	bLastSpawnWasFlat = false;
 	DistanceBetweenLanes = 280.f;
+	SidePieceDecoration = -1;
 }
 
 void AYafGameStateBase::TryToSpawnNextPiece()
@@ -72,6 +73,46 @@ void AYafGameStateBase::SetCurrentPieceYaw(const float NewYaw)
 	CurrentPieceYaw = NewYaw;
 }
 
+void AYafGameStateBase::GetSidePieceDecorations(UStaticMesh*& MeshToDisplay, USkeletalMesh*& SkeletalMeshToDisplay)
+{
+	MeshToDisplay = nullptr;
+ 	SkeletalMeshToDisplay = nullptr;
+	
+	if (SidePieceDecoration > -1)
+	{		
+		if (EdgeSkeletalMeshes.Num() > 0)
+		{
+			MeshToDisplay = EdgeStaticMeshes[SidePieceDecoration];
+		}
+
+		if (EdgeSkeletalMeshes.Num() > 0)
+		{
+			SkeletalMeshToDisplay = EdgeSkeletalMeshes[SidePieceDecoration];
+		}
+	}
+}
+
+void AYafGameStateBase::UpdateSidePieceDecoration()
+{
+	int32 NewDecoration = 0;
+	
+	if (EdgeStaticMeshes.Num() > 0)
+	{
+		do
+		{
+			NewDecoration = FMath::RandRange(0, EdgeStaticMeshes.Num());
+		}
+		while (NewDecoration == SidePieceDecoration);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Update called but Array is empty"));
+	}
+
+	// There should be a chance there is no side decoration so minus 1 off of the list to allow for this 
+	SidePieceDecoration = NewDecoration - 1;
+}
+
 void AYafGameStateBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -127,7 +168,7 @@ void AYafGameStateBase::SpawnNextLevelPiece(const bool SpawnStraight, const int3
 	// Don't spawn any random parts when the game starts to give the player time to get ready
 	if (SpawnPickup)
 	{
-		if (FMath::RandRange(0, 90) > SpawnEnemyChance)
+		if (FMath::RandRange(40, 90) > SpawnEnemyChance)
 		{
 			NewLevelPiece->SpawnPickup();
 		}
