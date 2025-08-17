@@ -173,6 +173,7 @@ private:
 	void AddToDistanceTravelled(float TimeIn);
 	
 	float DistanceTravelled;
+	float DistanceSpeedUpdater;
 	float TimeSinceDistanceUpdated;
 	void PauseKeyPressed();
 

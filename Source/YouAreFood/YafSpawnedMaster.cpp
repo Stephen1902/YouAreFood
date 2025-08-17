@@ -84,6 +84,12 @@ void AYafSpawnedMaster::OnMeshOverlap(UPrimitiveComponent* HitComp, AActor* Othe
 			// The player has hit the mesh of an enemy much larger than them.  It's game over.
 			PlayerPawnRef->GameOver();
 		}
+
+		// Check for a "hit" sound and play it
+		if (EndOfLifeSound)
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), EndOfLifeSound);
+		}
 	}
 }
 

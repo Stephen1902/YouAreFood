@@ -44,12 +44,13 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawned Items")
 	ESpawnedTypes SpawnedActorType;
-
+	
 	UPROPERTY()
     APlayerPawn* PlayerPawnRef;
 
 	UFUNCTION()
 	virtual void OnMeshOverlap(class UPrimitiveComponent* HitComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
 private:
 	UPROPERTY()
 	class AYafGameStateBase* GameStateRef;

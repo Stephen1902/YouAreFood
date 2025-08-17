@@ -64,6 +64,8 @@ APlayerPawn::APlayerPawn()
 
 	bHasShield = false;
 	bGameOver = false;
+
+	DistanceSpeedUpdater = 0.f;
 }
 
 void APlayerPawn::SetNewPositionAfterTurn(const FVector ArrowLocation, const FRotator NewRotation)
@@ -370,7 +372,18 @@ void APlayerPawn::AddToDistanceTravelled(float TimeIn)
 	// Convert m/s speed to MPH (x10 since speed works out to around 6.7MPH)
 	const int32 SpeedAsMPH = (CurrentSpeed / 1000.f ) * 22.369363;
 
+	float DistanceBeforeUpdate = DistanceTravelled;
+	
 	DistanceTravelled += SpeedAsMPH * TimeIn;
+
+	// Check if the player has travelled more than 100 metres, up their speed by 50.
+	DistanceSpeedUpdater += (DistanceTravelled - DistanceBeforeUpdate);
+	
+	if (DistanceSpeedUpdater > 100.f)
+	{
+		DistanceSpeedUpdater = 0.f;
+		MovementSpeed += 50.f;
+	}
 
 	TimeSinceDistanceUpdated += TimeIn;
 

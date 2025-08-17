@@ -12,7 +12,7 @@ AYafGameStateBase::AYafGameStateBase()
 	CurrentPieceYaw = 0;
 	LevelMasterRef = nullptr;
 	bLastSpawnWasFlat = false;
-	DistanceBetweenLanes = 200.f;
+	DistanceBetweenLanes = 280.f;
 }
 
 void AYafGameStateBase::TryToSpawnNextPiece()
