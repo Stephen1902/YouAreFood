@@ -39,7 +39,7 @@ protected:
 	UParticleSystem* EndOfLifeParticle;
 
 	// Sound to be played when this actor is hit by the player
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawned Items")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawned Items")
 	USoundBase* EndOfLifeSound; 
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawned Items")

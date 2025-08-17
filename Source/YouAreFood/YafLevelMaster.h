@@ -63,12 +63,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
 	UYafSpawnArrowComponent* SpawnPointRight;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
-	UChildActorComponent* OnRoadActor;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
-	UChildActorComponent* NewRoadsideActor;
-
 	// Whether the floor type is straight, turns the player left or right
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Game Level")
 	EFloorType FloorType;
@@ -77,6 +71,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Game Level")
 	TArray<TSubclassOf<class AYafSpawnedMaster>> ItemsToSpawn;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Game Level")
+	TSubclassOf<class AYafWalkwaySideActor> SideActorToSpawn;
+	
 	// Items from the Spawned Enemy class that can be spawned by this level piece
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Game Level")
 	TArray<TSubclassOf<class AYafSpawnedEnemy>> EnemiesToSpawn;
@@ -112,6 +109,9 @@ private:
 	
 	void GetReferences();
 
+	UPROPERTY()
+	class AYafWalkwaySideActor* NewEdgePiece;
+	
 	UPROPERTY()
 	class AYafGameStateBase* GameStateRef;
 

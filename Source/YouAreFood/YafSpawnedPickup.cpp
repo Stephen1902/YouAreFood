@@ -2,6 +2,8 @@
 
 #include "YafSpawnedPickup.h"
 
+#include "Kismet/GameplayStatics.h"
+
 void AYafSpawnedPickup::OnMeshOverlap(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	//Super::OnBeginOverlap(HitComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
@@ -13,16 +15,22 @@ void AYafSpawnedPickup::OnMeshOverlap(UPrimitiveComponent* HitComp, AActor* Othe
 		{
 		case EPickupTypes::PT_Shield:
 			{
-				PlayerPawnRef->SetHasShield(StaticMeshComp->GetStaticMesh(), StaticMeshComp->GetRelativeScale3D());
+				if (!PlayerPawnRef->GetHasShield())
+				{
+					EndOfLifeItems();
+					PlayerPawnRef->SetHasShield(StaticMeshComp->GetStaticMesh(), StaticMeshComp->GetRelativeScale3D());
+				}
 				break;
 			}
 		case EPickupTypes::PT_Food:
 			{
+				EndOfLifeItems();
 				PlayerPawnRef->AdjustLife(RestoresFoodAmount);
 				break;	
 			}
 		case EPickupTypes::PT_Boost:
 			{
+				EndOfLifeItems();
 				PlayerPawnRef->AdjustSpeed(BoostTimeInSeconds);
 				break;
 			}
@@ -30,4 +38,17 @@ void AYafSpawnedPickup::OnMeshOverlap(UPrimitiveComponent* HitComp, AActor* Othe
 
 		Destroy();
 	}	
+}
+
+void AYafSpawnedPickup::EndOfLifeItems()
+{
+			if (EndOfLifeParticle)
+    		{
+    			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), EndOfLifeParticle, GetActorLocation(), GetActorRotation());
+    		}
+    
+    		if (EndOfLifeSound)
+    		{
+    			UGameplayStatics::PlaySound2D(GetWorld(), EndOfLifeSound);	
+    		}
 }

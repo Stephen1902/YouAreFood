@@ -23,6 +23,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Level Pieces")
 	TArray<TSubclassOf<AYafLevelMaster>> TurnPiecesToSpawn;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Level Pieces")
+	TArray<UStaticMesh*> EdgeStaticMeshes;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Level Pieces")
+	TArray<TSubclassOf<AActor>> EdgeActorBPs;
+
 	// Distance between lanes for vehicles turning between them
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Options")
 	float DistanceBetweenLanes;
@@ -39,6 +45,9 @@ public:
 
 	void SetLastPieceWasFlat(const bool WasFlatIn ) { bLastSpawnWasFlat = WasFlatIn; }
 	bool GetLastPieceWasFlat() const { return bLastSpawnWasFlat; }
+
+	void GetSidePieceDecorations(UStaticMesh* &MeshToDisplay, TSubclassOf<AActor> &ActorToDisplay);
+	void UpdateSidePieceDecoration();
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -66,4 +75,6 @@ private:
 	AYafLevelMaster* LevelMasterRef;
 	
 	bool bLastSpawnWasFlat;
+
+	int32 SidePieceDecoration;
 };

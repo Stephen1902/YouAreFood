@@ -7,6 +7,7 @@
 #include "yafGameStateBase.h"
 #include "YafSpawnArrowComponent.h"
 #include "YafSpawnedEnemy.h"
+#include "YafWalkwaySideActor.h"
 #include "Components/BoxComponent.h"
 
 // Sets default values
@@ -48,12 +49,6 @@ AYafLevelMaster::AYafLevelMaster()
 	SpawnPointRight = CreateDefaultSubobject<UYafSpawnArrowComponent>(TEXT("Spawn Point Right"));
 	SpawnPointRight->SetupAttachment(RootComponent);
 	SpawnPointRight->SetRelativeLocation(FVector(100.f, 333.f, 30.f));
-
-	OnRoadActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("Spawned Pickup Actor"));
-	OnRoadActor->SetupAttachment(RootComponent);
-
-	NewRoadsideActor = CreateDefaultSubobject<UChildActorComponent>(TEXT("Spawned Roadside Actor"));
-	NewRoadsideActor->SetupAttachment(RootComponent);
 	
 	TurnSpawnChance = 0.f;
 	BlockSpawnChance = 50;
@@ -68,7 +63,6 @@ void AYafLevelMaster::BeginPlay()
 
 	GetReferences();
 	SetArrowAndBoxTransforms();
-	SpawnRoadsidePiece();
 }
 
 bool AYafLevelMaster::SpawnPickup()
@@ -118,16 +112,17 @@ bool AYafLevelMaster::SpawnEnemy()
 	if (SpawnPointArray.Num() > 0 && EnemiesToSpawn.Num() > 0)
 	{
 		const int32 RandomItemToSpawn = FMath::RandRange(0, EnemiesToSpawn.Num() - 1);
-		const int32 RandomTransformToSpawnAt = FMath::RandRange(0,2);
+		//const int32 RandomTransformToSpawnAt = FMath::RandRange(0,2);
 
 		const FActorSpawnParameters SpawnInfo;
-		
-		FVector WorldLocationToSpawn = SpawnPointArray[RandomTransformToSpawnAt].GetLocation();
+
+		// Enemies can only ever spawn in the middle so they don't glitch through the scenery
+		FVector WorldLocationToSpawn = SpawnPointArray[1].GetLocation();
 		WorldLocationToSpawn.Z += 20.f;
 		FRotator WorldRotationToSpawn = ArrowComp->GetComponentRotation();
 
-		// If the enemy has spawned in the middle, randomly select which way they face.  If they spawn on the right, always turn them around
-		if ((RandomTransformToSpawnAt == 1 && FMath::RandBool()) || RandomTransformToSpawnAt == 2)
+		// If the enemy has spawned in the middle, randomly select which way they face.
+		if ((FMath::RandBool()))
 		{
 				WorldRotationToSpawn.Yaw += 180.f;
 		}
@@ -191,14 +186,19 @@ void AYafLevelMaster::SetArrowAndBoxTransforms()
 		StartCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		StartCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
 		StartCollision->SetGenerateOverlapEvents(false);
+		SpawnRoadsidePiece();
 		break;
 	case EFloorType::FT_Left:
 		ArrowComp->SetRelativeLocation(FVector(500.f, -500.f, 0.f));
 		ArrowComp->SetRelativeRotation(FRotator(0.f, 270.f, 0.f));
+		// If it's a corner piece, change the edge pieces
+		GameStateRef->UpdateSidePieceDecoration();
 		break;
 	case EFloorType::FT_Right:
 		ArrowComp->SetRelativeLocation(FVector(500.f, 500.f, 0.f));
 		ArrowComp->SetRelativeRotation(FRotator(0.f, 90.f, 0.f));
+		// If it's a corner piece, change the edge pieces
+		GameStateRef->UpdateSidePieceDecoration();
 		break;
 	}
 }
@@ -226,7 +226,38 @@ void AYafLevelMaster::GetReferences()
 
 bool AYafLevelMaster::SpawnRoadsidePiece()
 {
-	return true;
+	if (FloorType == EFloorType::FT_Straight)
+	{
+		if (GameStateRef && SideActorToSpawn)
+		{
+			// Spawn the side pieces with the option of decoration for them
+			FVector SpawnLocation = GetActorLocation();
+		/*	
+			if (GetActorRotation().IsNearlyZero(5.0f) || (GetActorRotation().Yaw > 175.f && GetActorRotation().Yaw < 185.f))
+			{
+				SpawnLocation.X += 500.f;	
+			}
+			else
+			{
+				if ((GetActorRotation().Yaw > 85.f && GetActorRotation().Yaw < 95.f))
+				{
+					SpawnLocation.Y += 500.f;
+				}
+				else
+				{
+					SpawnLocation.Y -= 500.f;
+				}
+			}
+			*/
+			FRotator SpawnRotator = GetActorRotation();
+			FActorSpawnParameters SpawnParameters;
+			NewEdgePiece = GetWorld()->SpawnActor<AYafWalkwaySideActor>(SideActorToSpawn, SpawnLocation, SpawnRotator, SpawnParameters);
+
+			NewEdgePiece->SetActorThatSpawned(this);
+			return true;
+		}
+	}
+	return false;
 }
 
 void AYafLevelMaster::DestroyThisPiece()
@@ -241,6 +272,11 @@ void AYafLevelMaster::DestroyThisPiece()
 				SpawnedItems[i]->Destroy();
 			}
 		}
+	}
+
+	if (NewEdgePiece)
+	{
+		NewEdgePiece->Destroy();
 	}
 		
 	Destroy();
