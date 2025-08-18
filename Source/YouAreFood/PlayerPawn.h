@@ -70,6 +70,12 @@ protected:
 	UPROPERTY()
 	UTimelineComponent* TurnTimeline;
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShieldObtained();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShieldLost();
+
 	UFUNCTION(BlueprintCallable, Category = " Gameplay")
 	float GetMaxSpeed() const { return MovementSpeed; }
 

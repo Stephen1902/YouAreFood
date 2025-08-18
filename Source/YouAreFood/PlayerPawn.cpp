@@ -197,6 +197,7 @@ void APlayerPawn::SetHasShield(UStaticMesh* ShieldMesh, const FVector ScaleToSet
 		{
 			ShieldMeshComp->SetStaticMesh(ShieldMesh);
 			//ShieldMeshComp->SetRelativeScale3D(ScaleToSet);
+			ShieldObtained();
 		}
 	}
 }
@@ -205,6 +206,7 @@ void APlayerPawn::RemoveShield()
 {
 	bHasShield = false;
 	ShieldMeshComp->SetStaticMesh(nullptr);
+	ShieldLost();
 }
 
 void APlayerPawn::GameOver()
